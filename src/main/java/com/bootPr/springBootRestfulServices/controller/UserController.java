@@ -6,6 +6,8 @@ import java.util.List;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.Resource;
+import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,7 +19,6 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import com.bootPr.springBootRestfulServices.beans.User;
 import com.bootPr.springBootRestfulServices.beans.UserNotFoundException;
 import com.bootPr.springBootRestfulServices.service.UserService;
-
 @RestController
 public class UserController {
 
@@ -30,11 +31,15 @@ public class UserController {
 	}
 	
 	@GetMapping(path="/users/{id}")
-	public User findAllUsers(@PathVariable Long id) {
+	public Resource findAllUsers(@PathVariable Long id) {
 		User user = userService.findOne(id);
 		if(null == user)
 			throw new UserNotFoundException("Not available with id " + id) ;
-		return user;
+		
+		Resource<User> resource = new Resource<>(user);
+		ControllerLinkBuilder linkTo = ControllerLinkBuilder.linkTo(ControllerLinkBuilder.methodOn(this.getClass()).findAllUsers());
+		resource.add(linkTo.withRel("all-users"));
+		return resource;
 	}
 	
 	@PostMapping("/users/")
